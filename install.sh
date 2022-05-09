@@ -20,7 +20,8 @@ create_symlinks() {
 
 switch_to_zsh() {
   # Change default shell to zsh
-  chsh -s /usr/bin/zsh
+  echo "Changing default shell to zsh"
+  sudo chsh -s "$(which zsh)" "$(whoami)"
   echo "Shell: ${SHELL}"
 }
 
