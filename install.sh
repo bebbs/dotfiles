@@ -20,7 +20,8 @@ create_symlinks() {
 
 switch_to_zsh() {
   # Change default shell to zsh
-  sudo chsh -s /usr/bin/zsh
+  chsh -s /usr/bin/zsh
+  echo "Shell: ${SHELL}"
 }
 
 if [ "$CODESPACES" = "true" ]; then
