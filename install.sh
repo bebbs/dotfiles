@@ -23,16 +23,7 @@ switch_to_zsh() {
   sudo chsh -s /usr/bin/zsh
 }
 
-set_zsh_theme() {
-  # echo "Setting up the Spaceship theme"
-  # sudo apt-get install powerline fonts-powerline -y
-  # ZSH_CUSTOM="$HOME/.oh-my-zsh/custom"
-  # git clone https://github.com/spaceship-prompt/spaceship-prompt.git "$ZSH_CUSTOM/themes/spaceship-prompt" --depth=1
-  # ln -s "$ZSH_CUSTOM/themes/spaceship-prompt/spaceship.zsh-theme" "$ZSH_CUSTOM/themes/spaceship.zsh-theme"
-}
-
 if [ "$CODESPACES" = "true" ]; then
   create_symlinks
   switch_to_zsh
-  set_zsh_theme
 fi
