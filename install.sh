@@ -2,6 +2,7 @@
 
 echo "Starting dotfiles install"
 
+# Symlink dotfiles to $HOME dir in codespaces
 create_symlinks() {
     # Get the directory in which this script lives.
     script_dir=$(dirname "$(readlink -f "$0")")
@@ -18,8 +19,8 @@ create_symlinks() {
     done
 }
 
+# Change default shell to zsh
 switch_to_zsh() {
-  # Change default shell to zsh
   echo "Changing default shell to zsh"
   sudo chsh -s "$(which zsh)" "$(whoami)"
   echo "Shell: ${SHELL}"
