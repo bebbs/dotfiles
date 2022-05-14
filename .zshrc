@@ -10,6 +10,7 @@ ZSH_THEME="af-magic"
 
 plugins=(
   git
+  emojis
   zsh-syntax-highlighting
   zsh-autosuggestions
 )
