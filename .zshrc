@@ -1,4 +1,5 @@
 export ZSH="${HOME}/.oh-my-zsh"
+export LANG="en_GB.UTF-8"
 
 # Theme
 
