@@ -7,6 +7,10 @@ ZSH_THEME="af-magic"
 
 # Plugins
 
-plugins=(git)
+plugins=(
+  git
+  zsh-syntax-highlighting
+  zsh-autosuggestions
+)
 
 source $ZSH/oh-my-zsh.sh

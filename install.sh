@@ -26,7 +26,14 @@ switch_to_zsh() {
   echo "Shell: ${SHELL}"
 }
 
+# Clone zsh plugins to oh-my-zsh dir
+install_zsh_plugins() {
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+  git clone https://github.com/zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+}
+
 if [ "$CODESPACES" = "true" ]; then
   create_symlinks
   switch_to_zsh
+  install_zsh_plugins
 fi
