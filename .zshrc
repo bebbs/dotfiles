@@ -4,7 +4,7 @@ export LC_ALL="en_GB.UTF-8"
 
 # Theme
 
-ZSH_THEME="af-magic"
+ZSH_THEME="dpoggi"
 
 # Plugins
 
