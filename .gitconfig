@@ -1,0 +1,14 @@
+[user]
+  name = Josh Bebbington
+  email = bebbs@users.noreply.github.com
+
+[init]
+	defaultBranch = main
+
+[alias]
+  br = branch
+  cb = checkout -b
+  co = checkout
+  p = push
+  search = log --c -S
+  st = status

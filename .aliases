@@ -1,0 +1,4 @@
+alias c='carwow'
+alias cbi='carwow run bundle install'
+alias rs='carwow run bundle exec rspec'
+alias cop='carwow run bundle exec rubocop'

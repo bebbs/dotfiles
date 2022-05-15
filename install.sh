@@ -2,6 +2,8 @@
 
 echo "Starting dotfiles install"
 
+set -euo pipefail
+
 # Symlink dotfiles to $HOME dir in codespaces
 create_symlinks() {
     # Get the directory in which this script lives.
