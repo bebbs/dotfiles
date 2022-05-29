@@ -21,6 +21,16 @@ create_symlinks() {
     done
 }
 
+# Attempt to install oh-my-zsh, if it is not already configured
+install_ohmyzsh() {
+  if [[ -z $ZSH ]]; then
+    echo "Installing ohmyzsh"
+    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  else
+    echo "ohmyzsh is already installed."
+  fi
+}
+
 # Change default shell to zsh
 switch_to_zsh() {
   echo "Changing default shell to zsh"
@@ -29,13 +39,25 @@ switch_to_zsh() {
 }
 
 # Clone zsh plugins to oh-my-zsh dir
-install_zsh_plugins() {
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-  git clone https://github.com/zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+install_zsh_plugin() {
+  echo "Installing $1"
+  repo_name=https://github.com/zsh-users/${1}.git
+  destination=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/${1}
+
+  echo $repo_name
+  echo $destination
+
+  git clone $repo_name $destination
 }
 
-if [ "$CODESPACES" = "true" ]; then
-  create_symlinks
-  switch_to_zsh
-  install_zsh_plugins
-fi
+install_zsh_plugins() {
+  echo "Installing zsh plugins"
+  install_zsh_plugin "zsh-syntax-highlighting"
+  install_zsh_plugin "zsh-autosuggestions"
+}
+
+# Run steps
+create_symlinks
+install_ohmyzsh
+switch_to_zsh
+install_zsh_plugins
