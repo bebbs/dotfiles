@@ -1,6 +1,7 @@
 export ZSH="${HOME}/.oh-my-zsh"
 export LANG="en_GB.UTF-8"
 export LC_ALL="en_GB.UTF-8"
+export PATH="/opt/homebrew/bin:${PATH}"
 
 # Theme
 
