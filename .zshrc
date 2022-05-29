@@ -5,7 +5,7 @@ export PATH="/opt/homebrew/bin:${PATH}"
 
 # Theme
 
-ZSH_THEME="dpoggi"
+ZSH_THEME="af-magic"
 
 # Plugins
 
