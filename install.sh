@@ -2,7 +2,7 @@
 
 echo "Starting dotfiles install"
 
-set -euo pipefail
+set -eo pipefail
 
 # Symlink dotfiles to $HOME dir in codespaces
 create_symlinks() {
