@@ -44,9 +44,6 @@ install_zsh_plugin() {
   repo_name=https://github.com/zsh-users/${1}.git
   destination=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/${1}
 
-  echo $repo_name
-  echo $destination
-
   git clone $repo_name $destination
 }
 
