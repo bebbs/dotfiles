@@ -23,11 +23,11 @@ create_symlinks() {
 
 # Attempt to install oh-my-zsh, if it is not already configured
 install_ohmyzsh() {
-  if [[ -z $ZSH ]]; then
+  if [[ -d ~/.oh-my-zsh ]]; then
+    echo "ohmyzsh is already installed."
+  else
     echo "Installing ohmyzsh"
     sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-  else
-    echo "ohmyzsh is already installed."
   fi
 }
 
