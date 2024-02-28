@@ -12,3 +12,7 @@
   p = push
   search = log --c -S
   st = status
+[rerere]
+	enabled = true
+[branch]
+	sort = -committerdate
