@@ -1,0 +1,4 @@
+alias carspec='carwow run bundle exec rspec'
+alias carcop='carwow run bundle exec rubocop'
+alias carexec='carwow run bundle exec'
+alias carbi='carwow run bundle install'
