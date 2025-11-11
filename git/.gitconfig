@@ -9,6 +9,8 @@
   br = branch
   cb = checkout -b
   co = checkout
+  com = checkout master
+  pom = pull origin master
   p = push
   search = log --c -S
   st = status
@@ -16,3 +18,5 @@
 	enabled = true
 [branch]
 	sort = -committerdate
+[core]
+  excludesFile = ~/.gitignore
