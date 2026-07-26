@@ -9,14 +9,19 @@ export EDITOR="vim"
 
 # --- Homebrew ---------------------------------------------------------------
 # shellenv sets PATH, MANPATH and INFOPATH. Apple Silicon first, then Intel.
-for _brew in /opt/homebrew /usr/local; do
-  if [[ -x "$_brew/bin/brew" ]]; then
-    eval "$("$_brew/bin/brew" shellenv)"
-    export HOMEBREW_PREFIX="$_brew"
-    break
-  fi
-done
-unset _brew
+#
+# shellenv costs ~50ms and ~/.zprofile already runs it on login shells. It
+# exports HOMEBREW_PREFIX, so a set value means the environment is already there.
+if [[ -z "$HOMEBREW_PREFIX" ]]; then
+  for _brew in /opt/homebrew /usr/local; do
+    if [[ -x "$_brew/bin/brew" ]]; then
+      eval "$("$_brew/bin/brew" shellenv)"
+      export HOMEBREW_PREFIX="$_brew"
+      break
+    fi
+  done
+  unset _brew
+fi
 
 # --- PATH -------------------------------------------------------------------
 # Later calls win, so the order here is lowest to highest priority. Directories
@@ -41,11 +46,20 @@ prepend_path "$HOMEBREW_PREFIX/opt/gnu-sed/libexec/gnubin"
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="af-magic"
 
+# The update check forks git several times before the prompt (~90ms). Update
+# with `omz update` instead. Which knob applies depends on the oh-my-zsh
+# version, so both are set.
+DISABLE_AUTO_UPDATE=true
+zstyle ':omz:update' mode disabled
+
+# Skips re-auditing the ownership of every fpath entry on each startup (~15ms).
+# Everything on fpath here is installed by brew or this repo.
+ZSH_DISABLE_COMPFIX=true
+
 plugins=(
   git
-  emoji
-  zsh-syntax-highlighting
   zsh-autosuggestions
+  zsh-syntax-highlighting
 )
 
 [[ -d "$ZSH" ]] && source "$ZSH/oh-my-zsh.sh"
