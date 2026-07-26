@@ -8,7 +8,6 @@ tap "siddharthvaddem/openscreen"
 # --- Cloud and infrastructure ---
 brew "awscli"
 brew "heroku"
-brew "terraformer"
 
 # --- CI and deploys ---
 brew "circleci"
@@ -16,8 +15,7 @@ brew "circleci"
 # --- Data ---
 brew "sqlfluff"          # sql linter
 
-# --- Languages the monolith and its tooling need ---
-brew "poetry"
+# --- Languages and package managers ---
 brew "yarn"
 
 # --- Media processing (image/video pipelines) ---

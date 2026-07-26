@@ -22,9 +22,8 @@ brew "rbenv"            # ruby version manager
 brew "cmake"
 brew "rust"
 
-# --- Databases ---
-brew "postgresql@14"
-brew "libpq"            # psql/pg_dump client libs, added to PATH in .zshrc
+# --- Database clients ---
+brew "libpq"            # psql/pg_dump, added to PATH in .zshrc; no local server
 
 # --- Applications ---
 cask "ghostty"          # terminal
