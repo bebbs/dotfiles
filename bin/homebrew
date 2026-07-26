@@ -1,11 +1,44 @@
 #!/usr/bin/env bash
 #
 # Xcode command line tools, Homebrew itself, then everything in the Brewfiles.
+#
+#   bin/homebrew                   install everything the Brewfiles declare
+#   bin/homebrew --cleanup         list installed packages no Brewfile declares
+#   bin/homebrew --cleanup --force ...and uninstall them
 
 set -euo pipefail
 
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$BIN_DIR/lib/common.sh"
+
+usage() { sed -n '3,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//;/^set -euo/d'; }
+
+# Every Brewfile that applies to this machine. `brew bundle` reads one file at a
+# time, so anything comparing against "what this machine should have" has to
+# account for all of them: a cleanup told only about Brewfile treats the whole of
+# Brewfile.work as unwanted and uninstalls it, orbstack and all.
+brewfiles() {
+  printf '%s\n' "$DOTFILES_ROOT/Brewfile"
+  if is_work_machine; then printf '%s\n' "$DOTFILES_ROOT/Brewfile.work"; fi
+}
+
+cleanup() {
+  local files=()
+  while IFS= read -r f; do files+=("$f"); done < <(brewfiles)
+
+  heading "Packages no Brewfile declares"
+  info "checking against: ${files[*]##*/}"
+  # --file=- reads the Brewfile from stdin, which is the only way to have a
+  # single cleanup consider both files at once.
+  cat "${files[@]}" | brew bundle cleanup --file=- "$@"
+}
+
+case "${1:-}" in
+  -h|--help) usage; exit 0 ;;
+  --cleanup) shift; have brew || die "brew is not installed"; cleanup "$@"; exit 0 ;;
+  "")        ;;
+  *)         die "unknown option: $1" ;;
+esac
 
 heading "Xcode command line tools"
 if xcode-select -p >/dev/null 2>&1; then

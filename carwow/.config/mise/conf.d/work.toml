@@ -1,0 +1,10 @@
+# carwow-only tools. Stowed from the carwow/ package, so this file simply does
+# not exist on a personal machine. mise merges it over ~/.config/mise/config.toml.
+
+[tools]
+awscli = "2"
+circleci = "0.1"
+yarn = "4"
+
+# npm is the channel Heroku ship the CLI on; there is no standalone installer.
+"npm:heroku" = "11"

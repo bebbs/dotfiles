@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+#
+# Install the language runtimes and CLIs declared in the mise config.
+#
+#   bin/mise            install everything the config declares
+#   bin/mise --prune    remove the version managers mise replaced (asks first)
+#
+# mise itself comes from the Brewfile, so bin/homebrew must have run.
+
+set -euo pipefail
+
+BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$BIN_DIR/lib/common.sh"
+
+CORE_CONFIG="$DOTFILES_ROOT/mise/.config/mise/config.toml"
+WORK_CONFIG="$DOTFILES_ROOT/carwow/.config/mise/conf.d/work.toml"
+
+usage() { sed -n '3,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//;/^set -euo/d'; }
+
+# Install from a config in the repo, for the case where ~/.config/mise does not
+# exist yet: bin/link runs after bin/secrets and so cannot have run on a machine
+# being set up for the first time.
+#
+# One pass per file — MISE_GLOBAL_CONFIG_FILE names a single config, so the
+# conf.d merge that applies under $HOME does not happen here.
+install_from() {
+  local file="$1" label="$2"
+  if [ ! -f "$file" ]; then
+    skip "$label ($file is missing)"
+    return 0
+  fi
+  info "installing from $label"
+  MISE_GLOBAL_CONFIG_FILE="$file" mise install
+}
+
+# --- prune ------------------------------------------------------------------
+# Removing a runtime manager is destructive but recoverable — everything here is
+# reinstallable — so each one is confirmed individually rather than in a batch.
+
+prune_dir() {
+  local path="$1" what="$2" size
+  [ -e "$path" ] || { skip "$what — already gone"; return 0; }
+  size="$(du -sh "$path" 2>/dev/null | cut -f1)"
+  if confirm "Remove $what ($path, $size)?"; then
+    rm -rf "$path"
+    success "removed $path"
+  else
+    skip "kept $path"
+  fi
+}
+
+prune() {
+  heading "Pruning the managers mise replaced"
+  warn "this deletes runtimes — make sure 'mise ls' looks right first"
+
+  if have brew && brew list --versions rbenv >/dev/null 2>&1; then
+    if confirm "Uninstall the rbenv formula?"; then
+      brew uninstall rbenv && success "uninstalled rbenv"
+    else
+      skip "kept the rbenv formula"
+    fi
+  else
+    skip "rbenv formula — not installed"
+  fi
+
+  prune_dir "$HOME/.rbenv" "rbenv's rubies and shims"
+  prune_dir "$HOME/.nvm" "nvm and its node versions"
+  prune_dir "$HOME/.bun" "the curl-installed bun"
+
+  # /usr/local/go is root-owned, so this one needs sudo and is left to the human.
+  if [ -d /usr/local/go ]; then
+    warn "/usr/local/go is root-owned; remove it yourself once mise's go works:"
+    info "sudo rm -rf /usr/local/go"
+  else
+    skip "/usr/local/go — already gone"
+  fi
+
+  # Only managers with a state directory are handled here. A plain binary that
+  # brew still owns is drift, and the Brewfile check is what reports it.
+  info ""
+  info "formulae that moved to mise but are still installed by brew show up in:"
+  info "brew bundle cleanup --file=$DOTFILES_ROOT/Brewfile"
+}
+
+# --- main -------------------------------------------------------------------
+
+case "${1:-}" in
+  -h|--help) usage; exit 0 ;;
+  --prune)   have mise || die "mise is not installed"; prune; exit 0 ;;
+  "")        ;;
+  *)         die "unknown option: $1" ;;
+esac
+
+heading "mise"
+have mise || die "mise is not installed — run bin/homebrew first"
+success "mise $(mise --version | awk '{print $1}')"
+
+# A linked config must be used in place: setting MISE_GLOBAL_CONFIG_FILE while
+# ~/.config/mise/config.toml exists makes mise treat that file as an untrusted
+# stray and refuse to run. Letting mise find it also picks up the conf.d overlay
+# in the same pass.
+if [ -f "$HOME/.config/mise/config.toml" ]; then
+  info "installing from ~/.config/mise (linked)"
+  mise install
+else
+  install_from "$CORE_CONFIG" "mise/.config/mise/config.toml"
+  if is_work_machine; then
+    install_from "$WORK_CONFIG" "carwow/.config/mise/conf.d/work.toml"
+  else
+    skip "carwow tools (personal machine)"
+  fi
+fi
+
+success "runtimes installed"
+info "old managers are left in place — remove them with: bin/mise --prune"

@@ -88,6 +88,34 @@ else
   done
 fi
 
+# --- runtimes ---------------------------------------------------------------
+# Checked against the linked config under $HOME rather than the copy in the
+# repo, because that is what the shell actually loads. The symlink check above
+# is what catches the two drifting apart.
+heading "Runtimes"
+if ! have mise; then
+  bad "mise is not on PATH"; hint "run bin/homebrew"
+else
+  ok "mise $(mise --version 2>/dev/null | awk '{print $1}')"
+
+  missing="$(mise ls --missing --no-header 2>/dev/null | awk '{print $1 "@" $2}')"
+  if [ -n "$missing" ]; then
+    bad "declared but not installed: $(printf '%s' "$missing" | tr '\n' ' ')"
+    hint "run bin/mise"
+  else
+    ok "every declared tool is installed"
+  fi
+
+  # These shadow mise if they survive: each one puts shims or bins on PATH.
+  for stale in "$HOME/.rbenv:rbenv" "$HOME/.nvm:nvm" "$HOME/.bun:bun" "/usr/local/go:go"; do
+    path="${stale%%:*}"; what="${stale##*:}"
+    if [ -e "$path" ]; then
+      soft "$path still exists — $what was replaced by mise"
+      hint "remove it:  bin/mise --prune"
+    fi
+  done
+fi
+
 # --- secrets ----------------------------------------------------------------
 heading "Secrets"
 if [ ! -f "$DOTFILES_ROOT/zsh/.secrets" ]; then
@@ -127,7 +155,7 @@ else
   ok "interactive zsh starts silently"
 fi
 
-required="git gh stow rbenv zoxide fzf jq uv"
+required="git gh stow mise node ruby go zoxide fzf jq uv"
 [ "$profile" = "work" ] && required="$required gcloud"
 missing_cmds="$(zsh -ic 'for c in '"$required"'; do command -v $c >/dev/null || print -n "$c "; done' 2>/dev/null)"
 if [ -n "${missing_cmds// /}" ]; then

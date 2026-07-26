@@ -1,0 +1,28 @@
+# Managed by ~/dev/bebbs/dotfiles — edit there, not here.
+#
+# Every ~/.config/mise/conf.d/*.toml is merged over this file; carwow-only tools
+# live in one of those and are stowed only on a work machine.
+#
+# Versions are pinned to a major. mise resolves the newest matching release at
+# install time, so patches arrive on their own and a major bump is a deliberate
+# commit here. `bin/mise` installs everything below.
+
+[tools]
+# --- Language runtimes ---
+node = "24"     # Active LTS
+ruby = "3.4"
+go = "1"
+bun = "1"
+
+# --- CLIs worth pinning ---
+# bin/verify lints with shellcheck, so an unpinned bump would silently change
+# what passes.
+gh = "2"
+jq = "1"
+shellcheck = "0.11"
+
+[settings]
+# Honour .ruby-version, .nvmrc and .node-version, so a project resolves without
+# needing a mise.toml of its own. Off by default, hence spelled out here. A
+# project pinning an uninstalled version gets a warning, not a broken shell.
+idiomatic_version_file_enable_tools = ["ruby", "node"]

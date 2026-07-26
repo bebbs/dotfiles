@@ -8,13 +8,14 @@ cd ~/dev/bebbs/dotfiles
 bin/setup
 ```
 
-`bin/setup` asks once whether this is a carwow machine, then runs four
+`bin/setup` asks once whether this is a carwow machine, then runs six
 idempotent steps. Re-run it any time; re-run a single step with
 `bin/setup <step>`.
 
 | Step | What it does |
 | --- | --- |
 | `bin/homebrew` | Xcode command line tools, Homebrew, everything in the Brewfiles |
+| `bin/mise` | language runtimes and pinned CLIs (node, ruby, go, bun, gh, …) |
 | `bin/gcloud` | Google Cloud CLI, from Google's tarball (work machines only) |
 | `bin/zsh` | oh-my-zsh and its plugins, sets zsh as the login shell |
 | `bin/secrets` | interactive wizard for API tokens |
@@ -34,7 +35,9 @@ secrets.manifest    which secrets exist and where to get them
 git/                → ~/.gitconfig, ~/.gitignore_global
 zsh/                → ~/.zshrc, ~/.aliases, ~/.secrets
 ghostty/            → ~/.config/ghostty/config
-carwow/             → ~/.zshrc.work, ~/.aliases.work   (work machines only)
+mise/               → ~/.config/mise/config.toml
+carwow/             → ~/.zshrc.work, ~/.aliases.work,
+                      ~/.config/mise/conf.d/work.toml   (work machines only)
 ```
 
 Each top-level directory other than `bin/` is a stow package. `bin/link` names
@@ -49,6 +52,32 @@ a personal machine they are skipped entirely, so carwow aliases, telemetry
 config and tokens simply do not exist there.
 
 To change your mind: `rm ~/.dotfiles-profile && bin/setup`.
+
+## Runtimes
+
+`mise` owns every language runtime on the machine — node, ruby, go and bun —
+plus the CLIs worth pinning a version of.
+
+Versions are declared in `mise/.config/mise/config.toml`, pinned to a major so
+patches arrive on their own and a major bump is a deliberate commit. carwow-only
+tools (`awscli`, `circleci`, `yarn`, `heroku`) sit in
+`carwow/.config/mise/conf.d/work.toml`, which mise merges over the core config —
+and which only exists on a work machine.
+
+```bash
+bin/mise               # install everything the config declares
+bin/mise --prune       # remove the managers mise replaced (asks before each)
+mise ls                # what is installed
+mise ls --missing      # declared but not installed
+```
+
+`.ruby-version`, `.nvmrc` and `.node-version` are honoured, so a project resolves
+without needing a `mise.toml` of its own. If it pins a version that is not
+installed, mise warns and `mise install` in that directory fixes it.
+
+**The carwow apps are unaffected.** `quotes_site`, `dealers_site`, `flatmin`,
+`deals_service` and friends run a containerised Ruby through `carwow run` and
+pin no version files, so there is nothing for mise to attach to.
 
 ## Secrets
 
@@ -98,10 +127,11 @@ any did — so it is safe to hand to an agent or a CI job.
 bin/verify
 ```
 
-It covers the profile, every package's symlinks, both Brewfiles, the secrets file
-(permissions, git status, completeness), interactive shell health, the commands
-the config expects on PATH, the gcloud SDK and its pinned interpreter, and
-Ghostty. Failures come with the command that fixes them.
+It covers the profile, every package's symlinks, both Brewfiles, the mise
+runtimes (declared vs installed, and whether a replaced manager is still lying
+around), the secrets file (permissions, git status, completeness), interactive
+shell health, the commands the config expects on PATH, the gcloud SDK and its
+pinned interpreter, and Ghostty. Failures come with the command that fixes them.
 
 ## Other useful commands
 
@@ -109,5 +139,11 @@ Ghostty. Failures come with the command that fixes them.
 bin/link --dry-run     # show what would be symlinked
 bin/link --unlink      # remove the symlinks
 bin/secrets --check    # which secrets are set
-brew bundle cleanup --file=Brewfile   # list installed packages not in the Brewfile
+bin/mise --prune       # remove a superseded runtime manager
+bin/homebrew --cleanup # list installed packages no Brewfile declares
 ```
+
+Use `bin/homebrew --cleanup` rather than `brew bundle cleanup --file=Brewfile`.
+`brew bundle` reads one Brewfile at a time, so on a work machine the raw command
+sees nothing in `Brewfile.work` and offers to uninstall all of it — OrbStack
+included. `bin/homebrew --cleanup` passes both files for the current profile.
