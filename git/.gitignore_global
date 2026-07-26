@@ -1,0 +1,21 @@
+# Global gitignore, wired up by core.excludesFile in .gitconfig.
+# For things that are never worth committing in *any* repo — editor and OS
+# cruft, and local tooling state.
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editors and language servers
+.projections.json
+.ruby-lsp/
+.solargraph.yml
+*.swp
+*.swo
+.idea/
+
+# Local secrets that should never reach a remote, whatever the repo
+.env.local
+*.pem

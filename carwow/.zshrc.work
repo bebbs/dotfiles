@@ -1,0 +1,42 @@
+# carwow-only shell config. Stowed from the carwow/ package, so this file
+# simply does not exist on a personal machine. Sourced at the end of ~/.zshrc.
+#
+# Tokens referenced here come from ~/.secrets (see secrets.manifest).
+
+[[ -f "$HOME/.aliases.work" ]] && source "$HOME/.aliases.work"
+
+# --- Google Cloud SDK -------------------------------------------------------
+# Installed by bin/gcloud, which also pins the interpreter: Homebrew's python
+# bottles have an unusable pyexpat on macOS 26, and gcloud would otherwise pick
+# one up off PATH.
+[[ -x "$HOME/.local/bin/gcloud-python" ]] && \
+  export CLOUDSDK_PYTHON="$HOME/.local/bin/gcloud-python"
+
+_gcloud="$HOME/.local/share/google-cloud-sdk"
+if [[ -f "$_gcloud/path.zsh.inc" ]]; then
+  source "$_gcloud/path.zsh.inc"
+  [[ -f "$_gcloud/completion.zsh.inc" ]] && source "$_gcloud/completion.zsh.inc"
+fi
+unset _gcloud
+
+# --- Claude Code telemetry --------------------------------------------------
+# Only enabled when the ingest key is present, otherwise every session would
+# retry a failing OTLP export in the background.
+if [[ -n "${HONEYCOMB_CLAUDE_TELEMETRY_KEY:-}" ]]; then
+  export CLAUDE_CODE_ENABLE_TELEMETRY=1
+  export CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1
+
+  export OTEL_EXPORTER_OTLP_ENDPOINT="https://api.honeycomb.io:443"
+  export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
+  export OTEL_EXPORTER_OTLP_HEADERS="x-honeycomb-dataset=claude-code,x-honeycomb-team=${HONEYCOMB_CLAUDE_TELEMETRY_KEY}"
+  export OTEL_TRACES_EXPORTER="otlp"
+  export OTEL_LOGS_EXPORTER="otlp"
+  export OTEL_SERVICE_NAME="claude-code"
+  export OTEL_RESOURCE_ATTRIBUTES="service.name=claude-code"
+  export OTEL_LOGS_EXPORT_INTERVAL="5000"
+
+  # Sends prompts and tool arguments to Honeycomb. Anything you type or read in
+  # a session lands in the claude-code dataset — including, if you are not
+  # careful, secrets. Comment this out if that is not what you want.
+  export OTEL_LOG_TOOL_DETAILS=1
+fi

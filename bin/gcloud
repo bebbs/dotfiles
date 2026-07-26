@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+#
+# Google Cloud CLI, from Google's own tarball.
+#
+# Not a Homebrew cask: the gcloud-cli cask's post-install builds a virtualenv
+# with Homebrew's python and rolls the whole install back when that fails.
+#
+# gcloud needs a python whose pyexpat resolves against the system libexpat.
+# Homebrew's python bottles currently do not on macOS 26, so this picks an
+# interpreter from a source that bundles its own expat (mise or uv, both of
+# which use python-build-standalone) and pins it via a stable symlink that
+# carwow/.zshrc.work exports as CLOUDSDK_PYTHON.
+
+set -euo pipefail
+
+BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$BIN_DIR/lib/common.sh"
+
+SDK_DIR="$HOME/.local/share/google-cloud-sdk"
+PYTHON_LINK="$HOME/.local/bin/gcloud-python"
+PYTHON_VERSION="3.13"
+
+find_python() {
+  local candidate
+
+  if have mise; then
+    candidate="$(mise which python3 2>/dev/null || true)"
+    python_usable "$candidate" && { printf '%s' "$candidate"; return 0; }
+  fi
+
+  if have uv; then
+    candidate="$(uv python find "$PYTHON_VERSION" 2>/dev/null || true)"
+    if ! python_usable "$candidate"; then
+      uv python install "$PYTHON_VERSION" >/dev/null 2>&1 || true
+      candidate="$(uv python find "$PYTHON_VERSION" 2>/dev/null || true)"
+    fi
+    python_usable "$candidate" && { printf '%s' "$candidate"; return 0; }
+  fi
+
+  # python.org framework builds, if one happens to be installed
+  for candidate in "/usr/local/bin/python$PYTHON_VERSION" /usr/local/bin/python3; do
+    python_usable "$candidate" && { printf '%s' "$candidate"; return 0; }
+  done
+
+  return 1
+}
+
+heading "Google Cloud CLI"
+
+if ! is_work_machine; then
+  skip "carwow only, not needed on a personal machine"
+  exit 0
+fi
+
+# --- interpreter ------------------------------------------------------------
+if python_usable "$PYTHON_LINK"; then
+  skip "python already pinned ($(readlink "$PYTHON_LINK"))"
+else
+  python_path="$(find_python)" || die \
+    "no usable python found — install uv (in the Brewfile) or mise, then re-run"
+  mkdir -p "$(dirname "$PYTHON_LINK")"
+  ln -sfn "$python_path" "$PYTHON_LINK"
+  success "pinned python: $python_path"
+fi
+
+# --- sdk --------------------------------------------------------------------
+if [ -x "$SDK_DIR/bin/gcloud" ]; then
+  skip "sdk already installed"
+else
+  case "$(uname -m)" in
+    arm64)  arch="darwin-arm" ;;
+    x86_64) arch="darwin-x86_64" ;;
+    *)      die "unsupported architecture: $(uname -m)" ;;
+  esac
+
+  tmp="$(mktemp -d "${TMPDIR:-/tmp}/gcloud.XXXXXX")"
+  trap 'rm -rf "$tmp"' EXIT
+
+  info "downloading $arch"
+  curl -fsSL --retry 3 -o "$tmp/gcloud.tar.gz" \
+    "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-$arch.tar.gz"
+
+  info "extracting to $SDK_DIR"
+  mkdir -p "$(dirname "$SDK_DIR")"
+  tar -xzf "$tmp/gcloud.tar.gz" -C "$tmp"
+  # Move the tree into place in one step, so an interrupted download cannot
+  # leave a half-populated SDK_DIR behind.
+  rm -rf "$SDK_DIR"
+  mv "$tmp/google-cloud-sdk" "$SDK_DIR"
+
+  # --install-python false keeps the installer from running a sudo pkg install
+  # of a system python; we supply our own above. --path-update and
+  # --command-completion are false because .zshrc.work sources the SDK's own
+  # path.zsh.inc, and letting the installer edit shell profiles fights stow.
+  info "running the SDK installer"
+  CLOUDSDK_PYTHON="$PYTHON_LINK" "$SDK_DIR/install.sh" \
+    --quiet \
+    --usage-reporting false \
+    --path-update false \
+    --command-completion false \
+    --install-python false >/dev/null
+fi
+
+# --- verify -----------------------------------------------------------------
+version="$(CLOUDSDK_PYTHON="$PYTHON_LINK" "$SDK_DIR/bin/gcloud" --version 2>/dev/null | head -1)" \
+  || die "gcloud is installed but will not run"
+success "$version"
+
+if ! CLOUDSDK_PYTHON="$PYTHON_LINK" "$SDK_DIR/bin/gcloud" auth list \
+     --format='value(account)' >/dev/null 2>&1; then
+  info "authenticate with: gcloud auth login"
+fi

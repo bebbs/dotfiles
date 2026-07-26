@@ -1,0 +1,33 @@
+# carwow-only packages. Installed by bin/homebrew when ~/.dotfiles-profile
+# says "work".
+
+# Non-official taps also need trusting before Homebrew will load from them:
+#   brew trust --cask siddharthvaddem/openscreen/openscreen
+tap "siddharthvaddem/openscreen"
+
+# --- Cloud and infrastructure ---
+brew "awscli"
+brew "heroku"
+
+# --- CI and deploys ---
+brew "circleci"
+
+# --- Data ---
+brew "sqlfluff"          # sql linter
+
+# --- Languages and package managers ---
+brew "yarn"
+
+# --- Media processing (image/video pipelines) ---
+brew "ffmpeg"
+brew "imagemagick"
+brew "libvorbis"
+
+# --- Misc ---
+brew "docutils"
+brew "gowsdl"            # soap client generator
+
+# --- Applications ---
+cask "orbstack"          # docker/linux VMs
+cask "ngrok"             # tunnels for webhook testing
+cask "openscreen"

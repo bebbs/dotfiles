@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+#
+# Set up a Mac from scratch. Idempotent — safe to run again any time.
+#
+#   bin/setup              run every step
+#   bin/setup link         run one step (homebrew | zsh | secrets | link)
+#   bin/setup --list       show the steps
+
+set -euo pipefail
+
+BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$BIN_DIR/lib/common.sh"
+
+STEPS="homebrew gcloud zsh secrets link"
+
+usage() {
+  cat <<EOF
+Usage: bin/setup [STEP...]
+
+Steps, in order: $STEPS
+
+  homebrew   Xcode command line tools, Homebrew, everything in the Brewfile(s)
+  gcloud     Google Cloud CLI, from Google's tarball (work machines only)
+  zsh        oh-my-zsh and its plugins, make zsh the login shell
+  secrets    interactive wizard for API tokens (see secrets.manifest)
+  link       symlink the config into \$HOME with stow
+
+With no arguments every step runs. Each one is idempotent.
+EOF
+}
+
+case "${1:-}" in
+  -h|--help|--list) usage; exit 0 ;;
+esac
+
+[ "$(uname -s)" = "Darwin" ] || die "these dotfiles target macOS"
+
+profile="$(ensure_profile)"
+
+heading "Setting up this machine"
+info "dotfiles: $DOTFILES_ROOT"
+info "profile:  $profile  (change with: rm ~/.dotfiles-profile)"
+
+run_step() {
+  local step="$1"
+  [ -x "$DOTFILES_ROOT/bin/$step" ] || die "no such step: $step"
+  "$DOTFILES_ROOT/bin/$step"
+}
+
+if [ $# -gt 0 ]; then
+  for step in "$@"; do run_step "$step"; done
+else
+  for step in $STEPS; do run_step "$step"; done
+fi
+
+heading "Setup complete"
+info "Start a fresh shell to pick everything up:  exec zsh"

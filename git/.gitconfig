@@ -1,0 +1,40 @@
+[user]
+  name = Josh Bebbington
+  email = bebbs@users.noreply.github.com
+
+[init]
+  defaultBranch = main
+
+[core]
+  excludesFile = ~/.gitignore_global
+
+[alias]
+  br = branch
+  cb = checkout -b
+  co = checkout
+  com = checkout master
+  coma = checkout main
+  pom = pull origin master
+  poma = pull origin main
+  p = push
+  search = log --c -S
+  st = status
+
+[rerere]
+  enabled = true
+
+[branch]
+  sort = -committerdate
+
+# Auth is delegated to the gh CLI, scoped to GitHub hosts only. `gh` comes from
+# PATH so this resolves on both Apple Silicon and Intel.
+#
+# Never add a host-less [credential] helper that echoes $GITHUB_TOKEN: it sends
+# the PAT to every host git talks to, leaking it to any typo'd or hostile URL.
+[credential "https://github.com"]
+  helper =
+  helper = !gh auth git-credential
+
+[credential "https://gist.github.com"]
+  helper =
+  helper = !gh auth git-credential

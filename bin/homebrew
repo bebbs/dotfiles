@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+#
+# Xcode command line tools, Homebrew itself, then everything in the Brewfiles.
+
+set -euo pipefail
+
+BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$BIN_DIR/lib/common.sh"
+
+heading "Xcode command line tools"
+if xcode-select -p >/dev/null 2>&1; then
+  skip "already installed"
+else
+  info "A dialog will open — accept it, then re-run bin/setup."
+  xcode-select --install || true
+  die "waiting on the Xcode command line tools install"
+fi
+
+heading "Homebrew"
+if have brew; then
+  skip "already installed ($(brew --version | head -1))"
+else
+  info "Installing Homebrew (this will ask for your password)"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# Put brew on PATH for the rest of this script — the login shell won't have it
+# yet on a brand new machine.
+for candidate in /opt/homebrew /usr/local; do
+  if [ -x "$candidate/bin/brew" ]; then
+    eval "$("$candidate/bin/brew" shellenv)"
+    break
+  fi
+done
+have brew || die "brew is still not on PATH"
+
+heading "Brewfile"
+brew bundle --file="$DOTFILES_ROOT/Brewfile" --no-lock
+success "core packages installed"
+
+if is_work_machine; then
+  heading "Brewfile.work"
+  brew bundle --file="$DOTFILES_ROOT/Brewfile.work" --no-lock
+  success "carwow packages installed"
+else
+  skip "Brewfile.work (personal machine)"
+fi

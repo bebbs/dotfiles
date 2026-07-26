@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+#
+# Symlink the config into $HOME with stow.
+#
+# Packages are named explicitly rather than globbed as `*/`, because bin/ and
+# lib/ are directories too and must never be stowed into $HOME.
+#
+#   bin/link            link the packages for this machine
+#   bin/link --dry-run  show what would happen
+#   bin/link --unlink   remove the symlinks
+
+set -euo pipefail
+
+BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$BIN_DIR/lib/common.sh"
+
+have stow || die "stow is not installed — run bin/homebrew first"
+
+action="stow"
+# --no-folding symlinks individual files and keeps every directory on the way a
+# real directory, so a nested package cannot turn ~/.config into a symlink into
+# this repo and capture whatever else writes there.
+stow_flags=(--verbose --no-folding)
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -n|--dry-run) stow_flags+=(--no) ;;
+    -D|--unlink|--delete) action="unlink" ;;
+    -h|--help) sed -n '3,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//;/^set -euo/d'; exit 0 ;;
+    *) die "unknown option: $1" ;;
+  esac
+  shift
+done
+
+packages=()
+while IFS= read -r pkg; do packages+=("$pkg"); done < <(dotfiles_packages)
+
+cd "$DOTFILES_ROOT"
+
+if [ "$action" = "unlink" ]; then
+  heading "Unlinking"
+  stow --delete "${stow_flags[@]}" "${packages[@]}"
+  success "removed symlinks for: ${packages[*]}"
+  exit 0
+fi
+
+# stow refuses to overwrite a real file, and its error is easy to miss in the
+# middle of a long setup run. Say plainly what is in the way first.
+heading "Checking for conflicts"
+conflicts=0
+for pkg in "${packages[@]}"; do
+  # Only the files a package carries can collide. A directory on the way to one
+  # of them — ~/.config, say — is descended into by stow, not replaced, so an
+  # existing directory there is not a conflict.
+  while IFS= read -r rel; do
+    rel="${rel#./}"
+    case "$rel" in
+      *.stow-local-ignore|*.sample) continue ;;
+    esac
+    target="$HOME/$rel"
+    if [ -e "$target" ] && [ ! -L "$target" ]; then
+      warn "$target is a real file, not a symlink — stow will refuse to replace it"
+      info "back it up and remove it:  mv $target $target.bak"
+      conflicts=$((conflicts + 1))
+    fi
+  done < <(cd "$pkg" && find . \( -type f -o -type l \))
+done
+if [ $conflicts -eq 0 ]; then
+  success "no conflicts"
+else
+  die "$conflicts conflict(s) — resolve them and run bin/link again"
+fi
+
+heading "Linking packages: ${packages[*]}"
+stow --restow "${stow_flags[@]}" "${packages[@]}"
+success "linked into $HOME"

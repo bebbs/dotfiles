@@ -1,0 +1,9 @@
+# Ghostty terminal. Only options that differ from the defaults belong here —
+# see `ghostty +show-config --default --docs` for the full list.
+#
+# Ghostty also reads ~/Library/Application Support/com.mitchellh.ghostty/config
+# on macOS, and that file wins on any key it sets. Keep it absent.
+
+theme = Catppuccin Mocha
+unfocused-split-opacity = 0.4
+font-size = 22
