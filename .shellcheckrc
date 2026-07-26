@@ -1,0 +1,8 @@
+# Linter settings for the scripts in bin/.
+
+# bin/lib/common.sh is sourced rather than executed, so it carries no shebang.
+shell=bash
+
+# Every script resolves bin/lib/common.sh through a variable, and bin/secrets
+# sources the generated secrets file, so neither path can be followed statically.
+disable=SC1090,SC1091

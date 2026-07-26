@@ -12,7 +12,6 @@
 set -euo pipefail
 
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=bin/lib/common.sh
 source "$BIN_DIR/lib/common.sh"
 
 have stow || die "stow is not installed — run bin/homebrew first"
@@ -21,11 +20,11 @@ action="stow"
 # --no-folding symlinks individual files and keeps every directory on the way a
 # real directory, so a nested package cannot turn ~/.config into a symlink into
 # this repo and capture whatever else writes there.
-stow_flags="--verbose --no-folding"
+stow_flags=(--verbose --no-folding)
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    -n|--dry-run) stow_flags="$stow_flags --no" ;;
+    -n|--dry-run) stow_flags+=(--no) ;;
     -D|--unlink|--delete) action="unlink" ;;
     -h|--help) sed -n '3,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//;/^set -euo/d'; exit 0 ;;
     *) die "unknown option: $1" ;;
@@ -33,15 +32,15 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-packages="$(dotfiles_packages | tr '\n' ' ')"
+packages=()
+while IFS= read -r pkg; do packages+=("$pkg"); done < <(dotfiles_packages)
 
 cd "$DOTFILES_ROOT"
 
 if [ "$action" = "unlink" ]; then
   heading "Unlinking"
-  # shellcheck disable=SC2086
-  stow --delete $stow_flags $packages
-  success "removed symlinks for: $packages"
+  stow --delete "${stow_flags[@]}" "${packages[@]}"
+  success "removed symlinks for: ${packages[*]}"
   exit 0
 fi
 
@@ -49,7 +48,7 @@ fi
 # middle of a long setup run. Say plainly what is in the way first.
 heading "Checking for conflicts"
 conflicts=0
-for pkg in $packages; do
+for pkg in "${packages[@]}"; do
   # Only the files a package carries can collide. A directory on the way to one
   # of them — ~/.config, say — is descended into by stow, not replaced, so an
   # existing directory there is not a conflict.
@@ -72,7 +71,6 @@ else
   die "$conflicts conflict(s) — resolve them and run bin/link again"
 fi
 
-heading "Linking packages: $packages"
-# shellcheck disable=SC2086
-stow --restow $stow_flags $packages
+heading "Linking packages: ${packages[*]}"
+stow --restow "${stow_flags[@]}" "${packages[@]}"
 success "linked into $HOME"

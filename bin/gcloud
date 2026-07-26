@@ -14,7 +14,6 @@
 set -euo pipefail
 
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=bin/lib/common.sh
 source "$BIN_DIR/lib/common.sh"
 
 SDK_DIR="$HOME/.local/share/google-cloud-sdk"
@@ -75,8 +74,7 @@ else
   esac
 
   tmp="$(mktemp -d "${TMPDIR:-/tmp}/gcloud.XXXXXX")"
-  # shellcheck disable=SC2064
-  trap "rm -rf '$tmp'" EXIT
+  trap 'rm -rf "$tmp"' EXIT
 
   info "downloading $arch"
   curl -fsSL --retry 3 -o "$tmp/gcloud.tar.gz" \

@@ -11,7 +11,6 @@
 set -uo pipefail
 
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=bin/lib/common.sh
 source "$BIN_DIR/lib/common.sh"
 
 passed=0 warned=0 failed=0
@@ -25,8 +24,7 @@ profile="$(dotfiles_profile)"
 
 # --- profile ----------------------------------------------------------------
 heading "Profile"
-# shellcheck disable=SC2016  # the literal variable name is the message
-if [ -n "${DOTFILES_PROFILE:-}" ]; then profile_source='$DOTFILES_PROFILE'
+if [ -n "${DOTFILES_PROFILE:-}" ]; then profile_source="the environment"
 else profile_source="$PROFILE_FILE"
 fi
 case "$profile" in

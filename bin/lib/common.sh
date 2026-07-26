@@ -1,5 +1,3 @@
-# shellcheck shell=bash
-#
 # Shared helpers for the scripts in bin/. Sourced, never executed.
 # Kept compatible with bash 3.2 (the version macOS ships) so that bin/setup
 # works on a machine where nothing has been installed yet.

@@ -5,7 +5,6 @@
 set -euo pipefail
 
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=bin/lib/common.sh
 source "$BIN_DIR/lib/common.sh"
 
 ZSH_DIR="$HOME/.oh-my-zsh"
