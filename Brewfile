@@ -10,6 +10,7 @@ brew "fzf"              # fuzzy finder
 brew "jq"               # json processor
 brew "yazi"             # terminal file manager
 brew "shellcheck"       # lints the scripts in bin/
+brew "uv"               # python installer; bin/gcloud sources an interpreter from it
 
 # --- GNU userland (referenced by PATH setup in zsh/.zshrc) ---
 brew "coreutils"

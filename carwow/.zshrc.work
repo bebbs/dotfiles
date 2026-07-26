@@ -6,7 +6,13 @@
 [[ -f "$HOME/.aliases.work" ]] && source "$HOME/.aliases.work"
 
 # --- Google Cloud SDK -------------------------------------------------------
-_gcloud="$HOMEBREW_PREFIX/share/google-cloud-sdk"
+# Installed by bin/gcloud, which also pins the interpreter: Homebrew's python
+# bottles have an unusable pyexpat on macOS 26, and gcloud would otherwise pick
+# one up off PATH.
+[[ -x "$HOME/.local/bin/gcloud-python" ]] && \
+  export CLOUDSDK_PYTHON="$HOME/.local/bin/gcloud-python"
+
+_gcloud="$HOME/.local/share/google-cloud-sdk"
 if [[ -f "$_gcloud/path.zsh.inc" ]]; then
   source "$_gcloud/path.zsh.inc"
   [[ -f "$_gcloud/completion.zsh.inc" ]] && source "$_gcloud/completion.zsh.inc"

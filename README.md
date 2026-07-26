@@ -15,9 +15,13 @@ idempotent steps. Re-run it any time; re-run a single step with
 | Step | What it does |
 | --- | --- |
 | `bin/homebrew` | Xcode command line tools, Homebrew, everything in the Brewfiles |
+| `bin/gcloud` | Google Cloud CLI, from Google's tarball (work machines only) |
 | `bin/zsh` | oh-my-zsh and its plugins, sets zsh as the login shell |
 | `bin/secrets` | interactive wizard for API tokens |
 | `bin/link` | symlinks the config into `$HOME` with stow |
+
+Anything Homebrew cannot install cleanly gets its own step rather than being
+left as a manual instruction — `bin/gcloud` is the pattern to copy.
 
 ## Layout
 
