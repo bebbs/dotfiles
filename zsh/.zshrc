@@ -59,10 +59,12 @@ plugins=(
 # mise manages node, ruby, go, bun and a few pinned CLIs. Versions are declared
 # in ~/.config/mise/config.toml, stowed from the mise/ package.
 #
-# `activate` rather than putting the shims directory on PATH: activate is what
-# re-resolves versions on cd, which is what makes a project's .ruby-version or
-# .nvmrc take effect. It runs after the PATH block above so that a mise-managed
-# tool wins over a brew copy of the same thing.
+# Both mechanisms are needed. Shims resolve a mise-managed tool without an
+# activated shell, which is all a subprocess gets: git's credential helper
+# shells out to gh, and without this that lookup fails. activate is what
+# re-resolves versions on cd, so a project's .ruby-version or .nvmrc takes
+# effect; it goes second so its resolution takes precedence over the shims.
+prepend_path "$HOME/.local/share/mise/shims"
 command -v mise >/dev/null && eval "$(mise activate zsh)"
 
 # uv / pipx shims
