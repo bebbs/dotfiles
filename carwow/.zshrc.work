@@ -15,7 +15,19 @@
 _gcloud="$HOME/.local/share/google-cloud-sdk"
 if [[ -f "$_gcloud/path.zsh.inc" ]]; then
   source "$_gcloud/path.zsh.inc"
-  [[ -f "$_gcloud/completion.zsh.inc" ]] && source "$_gcloud/completion.zsh.inc"
+
+  # completion.zsh.inc pulls in bashcompinit and costs ~90ms, so it loads on the
+  # first completion rather than at startup. Sourcing it runs `complete`, which
+  # re-registers these commands onto the real handler, so the stub is only ever
+  # called once.
+  if [[ -f "$_gcloud/completion.zsh.inc" ]]; then
+    _gcloud_lazy_completion() {
+      unfunction _gcloud_lazy_completion
+      source "$HOME/.local/share/google-cloud-sdk/completion.zsh.inc"
+      _python_argcomplete "$@"
+    }
+    compdef _gcloud_lazy_completion gcloud gsutil bq
+  fi
 fi
 unset _gcloud
 
