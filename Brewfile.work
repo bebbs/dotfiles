@@ -10,10 +10,11 @@ brew "awscli"
 brew "heroku"
 brew "terraformer"
 
-# Must precede google-cloud-sdk: the cask's post-install runs `gcloud config
-# virtualenv create`, which aborts the install if virtualenv is not on PATH.
-brew "virtualenv"
-cask "google-cloud-sdk"
+# The gcloud-cli cask is not listed: its post-install builds a virtualenv with
+# python@3.14, whose pyexpat cannot resolve _XML_SetAllocTrackerActivationThreshold
+# against the macOS 26 system libexpat, so the install always rolls back.
+# Install the SDK to $HOMEBREW_PREFIX/share/google-cloud-sdk by hand until the
+# bottle is fixed; carwow/.zshrc.work picks it up from there.
 
 # --- CI and deploys ---
 brew "circleci"

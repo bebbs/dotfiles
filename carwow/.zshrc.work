@@ -6,17 +6,11 @@
 [[ -f "$HOME/.aliases.work" ]] && source "$HOME/.aliases.work"
 
 # --- Google Cloud SDK -------------------------------------------------------
-# First match wins: the cask install (Brewfile.work), then a manual install.
-for _gcloud in \
-  "$HOMEBREW_PREFIX/share/google-cloud-sdk" \
-  "$HOME/Downloads/google-cloud-sdk"
-do
-  if [[ -f "$_gcloud/path.zsh.inc" ]]; then
-    source "$_gcloud/path.zsh.inc"
-    [[ -f "$_gcloud/completion.zsh.inc" ]] && source "$_gcloud/completion.zsh.inc"
-    break
-  fi
-done
+_gcloud="$HOMEBREW_PREFIX/share/google-cloud-sdk"
+if [[ -f "$_gcloud/path.zsh.inc" ]]; then
+  source "$_gcloud/path.zsh.inc"
+  [[ -f "$_gcloud/completion.zsh.inc" ]] && source "$_gcloud/completion.zsh.inc"
+fi
 unset _gcloud
 
 # --- Claude Code telemetry --------------------------------------------------
