@@ -1,0 +1,37 @@
+# carwow-only packages. Installed by bin/homebrew when ~/.dotfiles-profile
+# says "work".
+
+# Third-party taps must be declared before the packages that come from them,
+# or `brew bundle` fails on a machine that hasn't tapped them.
+tap "siddharthvaddem/openscreen"
+
+# --- Cloud and infrastructure ---
+brew "awscli"
+brew "heroku"
+brew "terraformer"
+cask "google-cloud-sdk"  # replaces the manual install under ~/Downloads
+
+# --- CI and deploys ---
+brew "circleci"
+
+# --- Data ---
+brew "sqlfluff"          # sql linter
+
+# --- Languages the monolith and its tooling need ---
+brew "python@3.10"
+brew "poetry"
+brew "yarn"
+
+# --- Media processing (image/video pipelines) ---
+brew "ffmpeg"
+brew "imagemagick"
+brew "libvorbis"
+
+# --- Misc ---
+brew "docutils"
+brew "gowsdl"            # soap client generator
+
+# --- Applications ---
+cask "orbstack"          # docker/linux VMs
+cask "ngrok"             # tunnels for webhook testing
+cask "openscreen"

@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+#
+# Symlink the config into $HOME with stow.
+#
+# Packages are named explicitly rather than globbed as `*/`, because bin/ and
+# lib/ are directories too and must never be stowed into $HOME.
+#
+#   bin/link            link the packages for this machine
+#   bin/link --dry-run  show what would happen
+#   bin/link --unlink   remove the symlinks
+
+set -euo pipefail
+
+BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=bin/lib/common.sh
+source "$BIN_DIR/lib/common.sh"
+
+have stow || die "stow is not installed — run bin/homebrew first"
+
+action="stow"
+stow_flags="--verbose"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -n|--dry-run) stow_flags="$stow_flags --no" ;;
+    -D|--unlink|--delete) action="unlink" ;;
+    -h|--help) sed -n '3,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//;/^set -euo/d'; exit 0 ;;
+    *) die "unknown option: $1" ;;
+  esac
+  shift
+done
+
+packages="$(dotfiles_packages | tr '\n' ' ')"
+
+cd "$DOTFILES_ROOT"
+
+if [ "$action" = "unlink" ]; then
+  heading "Unlinking"
+  # shellcheck disable=SC2086
+  stow --delete $stow_flags $packages
+  success "removed symlinks for: $packages"
+  exit 0
+fi
+
+# stow refuses to overwrite a real file, and its error is easy to miss in the
+# middle of a long setup run. Say plainly what is in the way first.
+heading "Checking for conflicts"
+conflicts=0
+for pkg in $packages; do
+  # -mindepth/-maxdepth 1 keeps this to the top-level dotfiles in each package
+  for src in "$pkg"/.[!.]* "$pkg"/*; do
+    [ -e "$src" ] || continue
+    base="$(basename "$src")"
+    case "$base" in
+      .stow-local-ignore|*.sample) continue ;;
+    esac
+    target="$HOME/$base"
+    if [ -e "$target" ] && [ ! -L "$target" ]; then
+      warn "$target is a real file, not a symlink — stow will refuse to replace it"
+      info "back it up and remove it:  mv ~/$base ~/$base.bak"
+      conflicts=$((conflicts + 1))
+    fi
+  done
+done
+if [ $conflicts -eq 0 ]; then
+  success "no conflicts"
+else
+  die "$conflicts conflict(s) — resolve them and run bin/link again"
+fi
+
+heading "Linking packages: $packages"
+# shellcheck disable=SC2086
+stow --restow $stow_flags $packages
+success "linked into $HOME"

@@ -3,20 +3,41 @@
   email = bebbs@users.noreply.github.com
 
 [init]
-	defaultBranch = main
+  defaultBranch = main
+
+[core]
+  excludesFile = ~/.gitignore_global
 
 [alias]
   br = branch
   cb = checkout -b
   co = checkout
   com = checkout master
+  coma = checkout main
   pom = pull origin master
+  poma = pull origin main
   p = push
   search = log --c -S
   st = status
+
 [rerere]
-	enabled = true
+  enabled = true
+
 [branch]
-	sort = -committerdate
-[core]
-  excludesFile = ~/.gitignore
+  sort = -committerdate
+
+# Auth is delegated to the gh CLI, scoped to GitHub hosts only. `gh` is resolved
+# from PATH rather than hardcoded to /opt/homebrew, so this works on an Intel Mac
+# too. Equivalent to what `gh auth setup-git` writes; kept here so that a new
+# machine inherits it.
+#
+# Note: there is deliberately NO host-less [credential] helper here. A global
+# fallback that echoes $GITHUB_TOKEN as the password hands your PAT to *every*
+# host git talks to, so a clone from a typo'd or hostile URL leaks it.
+[credential "https://github.com"]
+  helper =
+  helper = !gh auth git-credential
+
+[credential "https://gist.github.com"]
+  helper =
+  helper = !gh auth git-credential

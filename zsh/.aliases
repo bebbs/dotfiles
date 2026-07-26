@@ -1,4 +1,14 @@
-alias carspec='carwow run bundle exec rspec'
-alias carcop='carwow run bundle exec rubocop'
-alias carexec='carwow run bundle exec'
-alias carbi='carwow run bundle install'
+# Aliases that apply to every machine.
+# Work-specific ones live in ~/.aliases.work (the carwow/ stow package).
+
+# ls, via GNU coreutils
+alias ll='ls -lh'
+alias la='ls -lAh'
+
+# git
+alias gs='git status'
+alias gd='git diff'
+alias gl='git log --oneline --graph --decorate -20'
+
+# dotfiles
+alias dotfiles='cd ~/dev/bebbs/dotfiles'
