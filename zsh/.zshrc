@@ -56,15 +56,14 @@ plugins=(
 [[ -f "$HOME/.secrets" ]] && source "$HOME/.secrets"
 
 # --- Language runtimes ------------------------------------------------------
-command -v rbenv >/dev/null && eval "$(rbenv init - zsh)"
-
-export NVM_DIR="$HOME/.nvm"
-[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
-[[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
-
-export BUN_INSTALL="$HOME/.bun"
-prepend_path "$BUN_INSTALL/bin"
-[[ -s "$BUN_INSTALL/_bun" ]] && source "$BUN_INSTALL/_bun"
+# mise manages node, ruby, go, bun and a few pinned CLIs. Versions are declared
+# in ~/.config/mise/config.toml, stowed from the mise/ package.
+#
+# `activate` rather than putting the shims directory on PATH: activate is what
+# re-resolves versions on cd, which is what makes a project's .ruby-version or
+# .nvmrc take effect. It runs after the PATH block above so that a mise-managed
+# tool wins over a brew copy of the same thing.
+command -v mise >/dev/null && eval "$(mise activate zsh)"
 
 # uv / pipx shims
 [[ -f "$HOME/.local/bin/env" ]] && source "$HOME/.local/bin/env"

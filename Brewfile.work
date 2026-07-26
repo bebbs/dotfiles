@@ -1,22 +1,15 @@
 # carwow-only packages. Installed by bin/homebrew when ~/.dotfiles-profile
 # says "work".
 
-# Non-official taps also need trusting before Homebrew will load from them:
-#   brew trust --cask siddharthvaddem/openscreen/openscreen
-tap "siddharthvaddem/openscreen"
+# Everything here comes from an official tap. A cask from a third-party tap
+# needs `brew trust` before Homebrew will load it, and an untrusted one aborts
+# the whole bundle rather than just its own entry.
 
-# --- Cloud and infrastructure ---
-brew "awscli"
-brew "heroku"
-
-# --- CI and deploys ---
-brew "circleci"
+# awscli, circleci, yarn and the heroku CLI are managed by mise, not here — see
+# carwow/.config/mise/conf.d/work.toml.
 
 # --- Data ---
-brew "sqlfluff"          # sql linter
-
-# --- Languages and package managers ---
-brew "yarn"
+brew "sqlfluff"          # sql linter; no mise registry entry
 
 # --- Media processing (image/video pipelines) ---
 brew "ffmpeg"
@@ -29,5 +22,3 @@ brew "gowsdl"            # soap client generator
 
 # --- Applications ---
 cask "orbstack"          # docker/linux VMs
-cask "ngrok"             # tunnels for webhook testing
-cask "openscreen"
