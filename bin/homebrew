@@ -35,12 +35,12 @@ done
 have brew || die "brew is still not on PATH"
 
 heading "Brewfile"
-brew bundle --file="$DOTFILES_ROOT/Brewfile" --no-lock
+brew bundle install --file="$DOTFILES_ROOT/Brewfile"
 success "core packages installed"
 
 if is_work_machine; then
   heading "Brewfile.work"
-  brew bundle --file="$DOTFILES_ROOT/Brewfile.work" --no-lock
+  brew bundle install --file="$DOTFILES_ROOT/Brewfile.work"
   success "carwow packages installed"
 else
   skip "Brewfile.work (personal machine)"
