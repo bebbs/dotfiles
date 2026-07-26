@@ -26,14 +26,11 @@
 [branch]
   sort = -committerdate
 
-# Auth is delegated to the gh CLI, scoped to GitHub hosts only. `gh` is resolved
-# from PATH rather than hardcoded to /opt/homebrew, so this works on an Intel Mac
-# too. Equivalent to what `gh auth setup-git` writes; kept here so that a new
-# machine inherits it.
+# Auth is delegated to the gh CLI, scoped to GitHub hosts only. `gh` comes from
+# PATH so this resolves on both Apple Silicon and Intel.
 #
-# Note: there is deliberately NO host-less [credential] helper here. A global
-# fallback that echoes $GITHUB_TOKEN as the password hands your PAT to *every*
-# host git talks to, so a clone from a typo'd or hostile URL leaks it.
+# Never add a host-less [credential] helper that echoes $GITHUB_TOKEN: it sends
+# the PAT to every host git talks to, leaking it to any typo'd or hostile URL.
 [credential "https://github.com"]
   helper =
   helper = !gh auth git-credential

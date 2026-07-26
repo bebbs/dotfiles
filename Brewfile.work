@@ -1,14 +1,8 @@
 # carwow-only packages. Installed by bin/homebrew when ~/.dotfiles-profile
 # says "work".
 
-# Third-party taps must be declared before the packages that come from them,
-# or `brew bundle` fails on a machine that hasn't tapped them. Recent Homebrew
-# also requires *trusting* a non-official tap before it will load anything from
-# it, which is a deliberate security decision and so cannot be automated here:
-#
+# Non-official taps also need trusting before Homebrew will load from them:
 #   brew trust --cask siddharthvaddem/openscreen/openscreen
-#
-# Until that is run, `brew bundle` will skip openscreen on a new machine.
 tap "siddharthvaddem/openscreen"
 
 # --- Cloud and infrastructure ---
@@ -16,9 +10,8 @@ brew "awscli"
 brew "heroku"
 brew "terraformer"
 
-# The google-cloud-sdk cask's post-install runs `gcloud config virtualenv
-# create`, which fails the whole install if virtualenv is not on PATH — so this
-# has to come first. Replaces the manual install under ~/Downloads.
+# Must precede google-cloud-sdk: the cask's post-install runs `gcloud config
+# virtualenv create`, which aborts the install if virtualenv is not on PATH.
 brew "virtualenv"
 cask "google-cloud-sdk"
 
@@ -31,13 +24,6 @@ brew "sqlfluff"          # sql linter
 # --- Languages the monolith and its tooling need ---
 brew "poetry"
 brew "yarn"
-
-# python@3.10 is deliberately left out. Nothing on this machine depends on it
-# (`brew uses --installed python@3.10` is empty), and its bottle is broken on
-# macOS 26: pyexpat links against /usr/lib/libexpat.1.dylib, which no longer
-# exports _XML_SetAllocTrackerActivationThreshold, so ensurepip dies during
-# post-install and every `brew bundle` run fails. Add it back only if a repo
-# actually needs 3.10, and expect to install it via rbenv/uv rather than brew.
 
 # --- Media processing (image/video pipelines) ---
 brew "ffmpeg"

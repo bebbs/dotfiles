@@ -23,11 +23,8 @@ unset _brew
 # Later calls win, so the order here is lowest to highest priority. Directories
 # that don't exist are skipped, which is what keeps a half-set-up machine quiet.
 #
-# One deliberate change from the old .zshrc: brew shellenv runs first, so
-# ~/.local/bin and ~/bin now outrank /opt/homebrew/bin instead of the reverse.
-# That is the usual convention (pipx/uv install into ~/.local/bin and you
-# generally want those to win), but it does mean a tool installed by both brew
-# and uv now resolves to the uv one.
+# These run after brew shellenv, so ~/.local/bin and ~/bin take precedence over
+# $HOMEBREW_PREFIX/bin: a tool installed by both uv and brew resolves to uv's.
 prepend_path() { [[ -d "$1" ]] && export PATH="$1:$PATH" }
 
 prepend_path "$HOME/.local/bin"

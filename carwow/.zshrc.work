@@ -6,10 +6,7 @@
 [[ -f "$HOME/.aliases.work" ]] && source "$HOME/.aliases.work"
 
 # --- Google Cloud SDK -------------------------------------------------------
-# Prefer the cask install (Brewfile.work). The ~/Downloads path is where this
-# used to be installed by hand — kept as a fallback so nothing breaks before
-# `brew install --cask google-cloud-sdk` has run. Once the cask is in place the
-# Downloads copy can be deleted.
+# First match wins: the cask install (Brewfile.work), then a manual install.
 for _gcloud in \
   "$HOMEBREW_PREFIX/share/google-cloud-sdk" \
   "$HOME/Downloads/google-cloud-sdk"
