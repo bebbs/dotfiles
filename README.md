@@ -33,6 +33,7 @@ Brewfile.work       carwow-only packages
 secrets.manifest    which secrets exist and where to get them
 git/                → ~/.gitconfig, ~/.gitignore_global
 zsh/                → ~/.zshrc, ~/.aliases, ~/.secrets
+ghostty/            → ~/.config/ghostty/config
 carwow/             → ~/.zshrc.work, ~/.aliases.work   (work machines only)
 ```
 

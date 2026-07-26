@@ -76,6 +76,6 @@ is_work_machine() { [ "$(dotfiles_profile)" = "work" ]; }
 
 # Stow packages that apply to this machine.
 dotfiles_packages() {
-  printf 'zsh\ngit\n'
+  printf 'zsh\ngit\nghostty\n'
   if is_work_machine; then printf 'carwow\n'; fi
 }

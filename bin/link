@@ -18,7 +18,10 @@ source "$BIN_DIR/lib/common.sh"
 have stow || die "stow is not installed — run bin/homebrew first"
 
 action="stow"
-stow_flags="--verbose"
+# --no-folding symlinks individual files and keeps every directory on the way a
+# real directory, so a nested package cannot turn ~/.config into a symlink into
+# this repo and capture whatever else writes there.
+stow_flags="--verbose --no-folding"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -47,20 +50,21 @@ fi
 heading "Checking for conflicts"
 conflicts=0
 for pkg in $packages; do
-  # -mindepth/-maxdepth 1 keeps this to the top-level dotfiles in each package
-  for src in "$pkg"/.[!.]* "$pkg"/*; do
-    [ -e "$src" ] || continue
-    base="$(basename "$src")"
-    case "$base" in
-      .stow-local-ignore|*.sample) continue ;;
+  # Only the files a package carries can collide. A directory on the way to one
+  # of them — ~/.config, say — is descended into by stow, not replaced, so an
+  # existing directory there is not a conflict.
+  while IFS= read -r rel; do
+    rel="${rel#./}"
+    case "$rel" in
+      *.stow-local-ignore|*.sample) continue ;;
     esac
-    target="$HOME/$base"
+    target="$HOME/$rel"
     if [ -e "$target" ] && [ ! -L "$target" ]; then
       warn "$target is a real file, not a symlink — stow will refuse to replace it"
-      info "back it up and remove it:  mv ~/$base ~/$base.bak"
+      info "back it up and remove it:  mv $target $target.bak"
       conflicts=$((conflicts + 1))
     fi
-  done
+  done < <(cd "$pkg" && find . \( -type f -o -type l \))
 done
 if [ $conflicts -eq 0 ]; then
   success "no conflicts"
