@@ -8,8 +8,7 @@ export LC_ALL="en_GB.UTF-8"
 export EDITOR="vim"
 
 # --- Homebrew ---------------------------------------------------------------
-# shellenv sets PATH, MANPATH and INFOPATH, and is much faster than shelling
-# out to `brew --prefix`. Apple Silicon first, then Intel.
+# shellenv sets PATH, MANPATH and INFOPATH. Apple Silicon first, then Intel.
 for _brew in /opt/homebrew /usr/local; do
   if [[ -x "$_brew/bin/brew" ]]; then
     eval "$("$_brew/bin/brew" shellenv)"
