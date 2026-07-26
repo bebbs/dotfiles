@@ -30,6 +30,17 @@ die()     { printf '  %s✗%s %s\n' "$C_RED" "$C_RESET" "$*" >&2; exit 1; }
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
+# A python gcloud will accept: new enough, and with a working pyexpat. Homebrew's
+# bottles can satisfy the first and fail the second, which surfaces much later as
+# an unrelated-looking crash, so both are checked together.
+python_usable() {
+  [ -n "${1:-}" ] && [ -x "$1" ] || return 1
+  "$1" - <<'PY' >/dev/null 2>&1
+import sys, pyexpat, xml.etree.ElementTree
+sys.exit(0 if sys.version_info >= (3, 12) else 1)
+PY
+}
+
 # confirm "Question?" [default]   default is "y" or "n" (default "n")
 confirm() {
   local prompt="$1" default="${2:-n}" reply hint

@@ -21,15 +21,6 @@ SDK_DIR="$HOME/.local/share/google-cloud-sdk"
 PYTHON_LINK="$HOME/.local/bin/gcloud-python"
 PYTHON_VERSION="3.13"
 
-# Usable means: gcloud will accept the version, and pyexpat actually loads.
-python_usable() {
-  [ -n "${1:-}" ] && [ -x "$1" ] || return 1
-  "$1" - <<'PY' >/dev/null 2>&1
-import sys, pyexpat, xml.etree.ElementTree
-sys.exit(0 if sys.version_info >= (3, 12) else 1)
-PY
-}
-
 find_python() {
   local candidate
 

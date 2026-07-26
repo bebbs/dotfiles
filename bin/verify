@@ -1,0 +1,186 @@
+#!/usr/bin/env bash
+#
+# Does this machine match what the repo expects?
+#
+# Read-only — nothing here changes state. Every check runs even if an earlier
+# one fails, so one run gives the whole picture. Exit status is 0 only when
+# nothing failed, so agents and CI can gate on it.
+#
+#   bin/verify
+
+set -uo pipefail
+
+BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=bin/lib/common.sh
+source "$BIN_DIR/lib/common.sh"
+
+passed=0 warned=0 failed=0
+
+ok()   { printf '  %s✓%s %s\n' "$C_GREEN"  "$C_RESET" "$*"; passed=$((passed + 1)); }
+bad()  { printf '  %s✗%s %s\n' "$C_RED"    "$C_RESET" "$*"; failed=$((failed + 1)); }
+soft() { printf '  %s!%s %s\n' "$C_YELLOW" "$C_RESET" "$*"; warned=$((warned + 1)); }
+hint() { printf '      %s%s%s\n' "$C_DIM" "$*" "$C_RESET"; }
+
+profile="$(dotfiles_profile)"
+
+# --- profile ----------------------------------------------------------------
+heading "Profile"
+# shellcheck disable=SC2016  # the literal variable name is the message
+if [ -n "${DOTFILES_PROFILE:-}" ]; then profile_source='$DOTFILES_PROFILE'
+else profile_source="$PROFILE_FILE"
+fi
+case "$profile" in
+  work|personal) ok "$profile (from $profile_source)" ;;
+  "") bad "no profile set"; hint "run bin/setup, or: echo work > $PROFILE_FILE" ;;
+  *)  bad "unrecognised profile '$profile' — expected work or personal" ;;
+esac
+
+# --- symlinks ---------------------------------------------------------------
+heading "Symlinks"
+link_problems=0
+for pkg in $(dotfiles_packages); do
+  if [ ! -d "$DOTFILES_ROOT/$pkg" ]; then
+    bad "package $pkg is listed in dotfiles_packages but missing from the repo"
+    link_problems=$((link_problems + 1))
+    continue
+  fi
+  while IFS= read -r rel; do
+    rel="${rel#./}"
+    case "$rel" in
+      *.stow-local-ignore|*.sample) continue ;;
+    esac
+    target="$HOME/$rel"
+    expected="$DOTFILES_ROOT/$pkg/$rel"
+    if [ ! -e "$target" ] && [ ! -L "$target" ]; then
+      bad "$target is missing"; hint "run bin/link"
+      link_problems=$((link_problems + 1))
+    elif [ ! -L "$target" ]; then
+      bad "$target is a real file, not a symlink"
+      hint "back it up and re-run bin/link:  mv $target $target.bak"
+      link_problems=$((link_problems + 1))
+    elif [ ! -e "$target" ]; then
+      bad "$target is a broken symlink -> $(readlink "$target")"
+      link_problems=$((link_problems + 1))
+    elif [ "$(cd "$(dirname "$target")" && cd "$(dirname "$(readlink "$target")")" && pwd)/$(basename "$target")" != "$expected" ]; then
+      bad "$target points outside this repo -> $(readlink "$target")"
+      link_problems=$((link_problems + 1))
+    fi
+  done < <(cd "$DOTFILES_ROOT/$pkg" && find . \( -type f -o -type l \))
+done
+[ "$link_problems" -eq 0 ] && ok "every package file is linked into \$HOME"
+
+# --- homebrew ---------------------------------------------------------------
+heading "Homebrew"
+if ! have brew; then
+  bad "brew is not on PATH"; hint "run bin/homebrew"
+else
+  ok "brew $(brew --version 2>/dev/null | head -1 | awk '{print $2}')"
+  for f in Brewfile $( [ "$profile" = "work" ] && echo Brewfile.work ); do
+    # stderr matters here: brew bundle check reports shortfalls on it, so
+    # discarding it turns a failing check into a silent pass.
+    out="$(HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check \
+      --file="$DOTFILES_ROOT/$f" --verbose 2>&1)"
+    if printf '%s' "$out" | grep -q '→'; then
+      bad "$f is not satisfied"
+      printf '%s\n' "$out" | grep '→' | sed 's/^/      /'
+      hint "run bin/homebrew"
+    else
+      ok "$f satisfied"
+    fi
+  done
+fi
+
+# --- secrets ----------------------------------------------------------------
+heading "Secrets"
+if [ ! -f "$DOTFILES_ROOT/zsh/.secrets" ]; then
+  bad "zsh/.secrets does not exist"; hint "run bin/secrets"
+else
+  # GNU stat first, BSD second: coreutils is ahead of the system tools on PATH
+  # once .zshrc has run, but not on a machine that has yet to install it.
+  perms="$(stat -c '%a' "$DOTFILES_ROOT/zsh/.secrets" 2>/dev/null \
+        || stat -f '%Lp' "$DOTFILES_ROOT/zsh/.secrets" 2>/dev/null)"
+  if [ "$perms" = "600" ]; then ok "zsh/.secrets is mode 600"
+  else bad "zsh/.secrets is mode $perms, expected 600"; hint "chmod 600 zsh/.secrets"
+  fi
+
+  if git -C "$DOTFILES_ROOT" ls-files --error-unmatch zsh/.secrets >/dev/null 2>&1; then
+    bad "zsh/.secrets is TRACKED BY GIT — it holds live tokens"
+    hint "git rm --cached zsh/.secrets   (and rotate everything in it)"
+  elif git -C "$DOTFILES_ROOT" check-ignore -q zsh/.secrets; then
+    ok "zsh/.secrets is gitignored and untracked"
+  else
+    bad "zsh/.secrets is not gitignored"; hint "add zsh/.secrets to .gitignore"
+  fi
+
+  if DOTFILES_PROFILE="$profile" "$BIN_DIR/secrets" --check >/dev/null 2>&1; then
+    ok "every secret for this profile is set"
+  else
+    bad "secrets are missing"; hint "bin/secrets --check   to see which"
+  fi
+fi
+
+# --- shell ------------------------------------------------------------------
+heading "Shell"
+shell_out="$(zsh -i -c exit 2>&1)"
+if [ -n "$shell_out" ]; then
+  bad "an interactive zsh prints output on startup"
+  printf '%s\n' "$shell_out" | head -5 | sed 's/^/      /'
+else
+  ok "interactive zsh starts silently"
+fi
+
+required="git gh stow rbenv zoxide fzf jq uv"
+[ "$profile" = "work" ] && required="$required gcloud"
+missing_cmds="$(zsh -ic 'for c in '"$required"'; do command -v $c >/dev/null || print -n "$c "; done' 2>/dev/null)"
+if [ -n "${missing_cmds// /}" ]; then
+  bad "not on PATH in an interactive shell: ${missing_cmds% }"
+else
+  ok "all expected commands resolve: $required"
+fi
+
+# --- google cloud sdk -------------------------------------------------------
+if [ "$profile" = "work" ]; then
+  heading "Google Cloud SDK"
+  sdk="$HOME/.local/share/google-cloud-sdk"
+  pinned="$HOME/.local/bin/gcloud-python"
+  if [ ! -x "$sdk/bin/gcloud" ]; then
+    bad "sdk missing from $sdk"; hint "run bin/gcloud"
+  else
+    ok "sdk present"
+    if python_usable "$pinned"; then
+      ok "pinned interpreter is usable ($(readlink "$pinned"))"
+    else
+      bad "pinned interpreter at $pinned is missing or has a broken pyexpat"
+      hint "run bin/gcloud to re-pin one"
+    fi
+    if CLOUDSDK_PYTHON="$pinned" "$sdk/bin/gcloud" --version >/dev/null 2>&1; then
+      ok "gcloud runs"
+    else
+      bad "gcloud will not run"
+    fi
+  fi
+fi
+
+# --- ghostty ---------------------------------------------------------------
+heading "Ghostty"
+appsupport="$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+if [ -e "$appsupport" ]; then
+  soft "an Application Support config exists and overrides the managed one"
+  hint "remove it:  rm '$appsupport'"
+else
+  ok "no Application Support config shadowing the managed one"
+fi
+if have ghostty; then
+  if ghostty +validate-config >/dev/null 2>&1; then ok "config validates"
+  else bad "ghostty rejects the config"; hint "ghostty +validate-config"
+  fi
+fi
+
+# --- summary ----------------------------------------------------------------
+heading "Summary"
+printf '  %s%s passed%s' "$C_GREEN" "$passed" "$C_RESET"
+[ "$warned" -gt 0 ] && printf ', %s%s warning%s%s' "$C_YELLOW" "$warned" "$( [ "$warned" = 1 ] || printf s )" "$C_RESET"
+[ "$failed" -gt 0 ] && printf ', %s%s failed%s' "$C_RED" "$failed" "$C_RESET"
+printf '\n'
+
+[ "$failed" -eq 0 ]

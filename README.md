@@ -88,10 +88,26 @@ fast shell startup and zero dependencies. If that stops being acceptable, the
 place to change it is `write_secrets`/`value_of` in `bin/secrets` — the rest of
 the wizard is storage-agnostic.
 
+## Checking a machine
+
+`bin/verify` answers "is this machine set up the way the repo says it should be?"
+It changes nothing, runs every check even after one fails, and exits non-zero if
+any did — so it is safe to hand to an agent or a CI job.
+
+```bash
+bin/verify
+```
+
+It covers the profile, every package's symlinks, both Brewfiles, the secrets file
+(permissions, git status, completeness), interactive shell health, the commands
+the config expects on PATH, the gcloud SDK and its pinned interpreter, and
+Ghostty. Failures come with the command that fixes them.
+
 ## Other useful commands
 
 ```bash
 bin/link --dry-run     # show what would be symlinked
 bin/link --unlink      # remove the symlinks
+bin/secrets --check    # which secrets are set
 brew bundle cleanup --file=Brewfile   # list installed packages not in the Brewfile
 ```
