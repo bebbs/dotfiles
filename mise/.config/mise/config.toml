@@ -18,6 +18,7 @@ bun = "1"
 # bin/verify lints with shellcheck, so an unpinned bump would silently change
 # what passes.
 gh = "2"
+glow = "2"
 jq = "1"
 shellcheck = "0.11"
 
