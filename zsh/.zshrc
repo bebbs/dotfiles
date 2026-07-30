@@ -10,9 +10,11 @@ export EDITOR="vim"
 # --- Homebrew ---------------------------------------------------------------
 # shellenv sets PATH, MANPATH and INFOPATH. Apple Silicon first, then Intel.
 #
-# shellenv costs ~50ms and ~/.zprofile already runs it on login shells. It
-# exports HOMEBREW_PREFIX, so a set value means the environment is already there.
-if [[ -z "$HOMEBREW_PREFIX" ]]; then
+# shellenv costs ~50ms and ~/.zprofile already runs it on login shells, so skip
+# it when its work is already visible. Both halves matter: HOMEBREW_PREFIX can
+# be inherited by a subprocess whose PATH was reset, and then the prefix alone
+# would wrongly imply brew is reachable.
+if [[ -z "$HOMEBREW_PREFIX" || ":$PATH:" != *":$HOMEBREW_PREFIX/bin:"* ]]; then
   for _brew in /opt/homebrew /usr/local; do
     if [[ -x "$_brew/bin/brew" ]]; then
       eval "$("$_brew/bin/brew" shellenv)"
