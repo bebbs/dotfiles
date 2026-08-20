@@ -103,3 +103,6 @@ unsetopt nomatch
 # --- Work overlay -----------------------------------------------------------
 # Stowed from the carwow/ package, so it only exists on a work machine.
 [[ -f "$HOME/.zshrc.work" ]] && source "$HOME/.zshrc.work"
+
+# Cortex CLI completion (disable via /settings in cortex)
+[[ -s ~/.zsh/completions/cortex.zsh ]] && source ~/.zsh/completions/cortex.zsh

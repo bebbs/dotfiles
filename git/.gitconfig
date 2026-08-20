@@ -12,10 +12,9 @@
   br = branch
   cb = checkout -b
   co = checkout
-  com = checkout master
-  coma = checkout main
-  pom = pull origin master
-  poma = pull origin main
+  dfl = "!git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || { git remote set-head origin --auto >/dev/null && git symbolic-ref --short refs/remotes/origin/HEAD; }"
+  com = "!b=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || git dfl) && git switch \"${b#origin/}\""
+  pom = "!b=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || git dfl) && git switch \"${b#origin/}\" && git pull --ff-only"
   p = push
   search = log --c -S
   st = status
@@ -25,6 +24,12 @@
 
 [branch]
   sort = -committerdate
+
+# Keep refs/remotes/origin/HEAD in sync on fetch. The default, "create", only
+# writes it when absent, so a repo that later changes its default branch would
+# keep a stale value forever.
+[remote "origin"]
+  followRemoteHEAD = always
 
 # Auth is delegated to the gh CLI, scoped to GitHub hosts only. `gh` comes from
 # PATH so this resolves on both Apple Silicon and Intel.
