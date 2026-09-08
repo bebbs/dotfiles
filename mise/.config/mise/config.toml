@@ -10,7 +10,7 @@
 [tools]
 # --- Language runtimes ---
 node = "24"     # Active LTS
-ruby = "3.4"
+ruby = "4.0"
 go = "1"
 bun = "1"
 
