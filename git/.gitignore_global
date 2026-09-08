@@ -19,3 +19,5 @@
 # Local secrets that should never reach a remote, whatever the repo
 .env.local
 *.pem
+
+**/.claude/settings.local.json
