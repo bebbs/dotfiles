@@ -155,7 +155,9 @@ else
   ok "interactive zsh starts silently"
 fi
 
-required="git gh stow mise node ruby go zoxide fzf jq uv"
+# docker comes from OrbStack, and only after it has been launched once: the
+# cask installs the app, the app installs the CLI.
+required="git gh stow mise node ruby go zoxide fzf jq uv docker"
 [ "$profile" = "work" ] && required="$required gcloud"
 missing_cmds="$(zsh -ic 'for c in '"$required"'; do command -v $c >/dev/null || print -n "$c "; done' 2>/dev/null)"
 if [ -n "${missing_cmds// /}" ]; then

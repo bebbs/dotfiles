@@ -39,6 +39,7 @@ brew "libpq"            # psql/pg_dump, added to PATH in .zshrc; no local server
 # --- Applications ---
 cask "ghostty"          # terminal
 cask "jumpcut"          # clipboard history
+cask "orbstack"         # containers and linux VMs; where the docker CLI comes from
 
 # --- Fonts ---
 cask "font-symbols-only-nerd-font"
