@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+#
+# OrbStack's command-line tools: docker, docker-compose and orb.
+#
+# The cask installs the app and stops there. The CLI, the completions and the
+# container engine only appear the first time OrbStack is launched, so a machine
+# that has only ever run `brew bundle` has an /Applications entry and no docker.
+# This launches it once and waits for the tools to land.
+#
+#   bin/orbstack
+
+set -euo pipefail
+
+BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$BIN_DIR/lib/common.sh"
+
+APP="/Applications/OrbStack.app"
+CLI_DIR="$HOME/.orbstack/bin"
+
+# How long to wait for the first launch to install the tools. It unpacks a
+# virtual machine, which is slower than it looks on a cold machine.
+TIMEOUT=120
+
+heading "OrbStack"
+
+if [ ! -d "$APP" ]; then
+  die "$APP is missing — run bin/homebrew first"
+fi
+
+if [ -x "$CLI_DIR/docker" ]; then
+  skip "command-line tools already installed"
+  exit 0
+fi
+
+info "Launching OrbStack to install its command-line tools"
+info "It may ask for your password to install its privileged helper."
+open -a OrbStack
+
+waited=0
+while [ ! -x "$CLI_DIR/docker" ] && [ "$waited" -lt "$TIMEOUT" ]; do
+  sleep 2
+  waited=$((waited + 2))
+done
+
+if [ ! -x "$CLI_DIR/docker" ]; then
+  die "OrbStack did not install its tools within ${TIMEOUT}s — finish its setup in the app, then re-run bin/orbstack"
+fi
+
+success "docker, docker-compose and orb installed in $CLI_DIR"
+# zsh/.zshrc puts $CLI_DIR on PATH, so it resolves in the next shell rather than
+# through the stanza OrbStack would otherwise append to ~/.zprofile.
+info "Start a fresh shell to pick up docker:  exec zsh"

@@ -8,7 +8,7 @@ cd ~/dev/bebbs/dotfiles
 bin/setup
 ```
 
-`bin/setup` asks once whether this is a carwow machine, then runs six
+`bin/setup` asks once whether this is a carwow machine, then runs seven
 idempotent steps. Re-run it any time; re-run a single step with
 `bin/setup <step>`.
 
@@ -17,6 +17,7 @@ idempotent steps. Re-run it any time; re-run a single step with
 | `bin/homebrew` | Xcode command line tools, Homebrew, everything in the Brewfiles |
 | `bin/mise` | language runtimes and pinned CLIs (node, ruby, go, bun, gh, …) |
 | `bin/gcloud` | Google Cloud CLI, from Google's tarball (work machines only) |
+| `bin/orbstack` | launches OrbStack once, so it installs docker and its friends |
 | `bin/zsh` | oh-my-zsh and its plugins, sets zsh as the login shell |
 | `bin/secrets` | interactive wizard for API tokens |
 | `bin/link` | symlinks the config into `$HOME` with stow |
@@ -145,5 +146,6 @@ bin/homebrew --cleanup # list installed packages no Brewfile declares
 
 Use `bin/homebrew --cleanup` rather than `brew bundle cleanup --file=Brewfile`.
 `brew bundle` reads one Brewfile at a time, so on a work machine the raw command
-sees nothing in `Brewfile.work` and offers to uninstall all of it — OrbStack
-included. `bin/homebrew --cleanup` passes both files for the current profile.
+sees nothing in `Brewfile.work` and offers to uninstall all of it — ffmpeg and
+imagemagick included. `bin/homebrew --cleanup` passes both files for the current
+profile.

@@ -37,6 +37,15 @@ prepend_path "$HOMEBREW_PREFIX/opt/libpq/bin"
 prepend_path "$HOME/dev/bin"
 prepend_path "$HOME/dev/dev-environment/bin"
 
+# docker, docker-compose and orb, installed by OrbStack. Adding it here rather
+# than letting OrbStack append to ~/.zprofile keeps the PATH declared in one
+# managed place; the directory only exists once OrbStack has been launched.
+prepend_path "$HOME/.orbstack/bin"
+
+# OrbStack's completions, which its ~/.zprofile stanza would otherwise carry.
+# This has to run before oh-my-zsh calls compinit, below.
+[[ -d "$HOME/.orbstack/shell/completions/zsh" ]] && fpath+=("$HOME/.orbstack/shell/completions/zsh")
+
 # GNU coreutils/findutils/sed ahead of the BSD versions macOS ships
 prepend_path "$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin"
 prepend_path "$HOMEBREW_PREFIX/opt/findutils/libexec/gnubin"
