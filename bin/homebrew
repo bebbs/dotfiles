@@ -16,7 +16,7 @@ usage() { sed -n '3,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//;/^set -euo/d'; }
 # Every Brewfile that applies to this machine. `brew bundle` reads one file at a
 # time, so anything comparing against "what this machine should have" has to
 # account for all of them: a cleanup told only about Brewfile treats the whole of
-# Brewfile.work as unwanted and uninstalls it, orbstack and all.
+# Brewfile.work as unwanted and uninstalls it, ffmpeg and all.
 brewfiles() {
   printf '%s\n' "$DOTFILES_ROOT/Brewfile"
   if is_work_machine; then printf '%s\n' "$DOTFILES_ROOT/Brewfile.work"; fi

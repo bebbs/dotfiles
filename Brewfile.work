@@ -19,6 +19,3 @@ brew "libvorbis"
 # --- Misc ---
 brew "docutils"
 brew "gowsdl"            # soap client generator
-
-# --- Applications ---
-cask "orbstack"          # docker/linux VMs

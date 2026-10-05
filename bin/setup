@@ -11,7 +11,7 @@ set -euo pipefail
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$BIN_DIR/lib/common.sh"
 
-STEPS="homebrew mise gcloud zsh secrets link"
+STEPS="homebrew mise gcloud orbstack zsh secrets link"
 
 usage() {
   cat <<EOF
@@ -22,6 +22,7 @@ Steps, in order: $STEPS
   homebrew   Xcode command line tools, Homebrew, everything in the Brewfile(s)
   mise       language runtimes and pinned CLIs (node, ruby, go, bun, gh, ...)
   gcloud     Google Cloud CLI, from Google's tarball (work machines only)
+  orbstack   launch OrbStack once so it installs docker and its friends
   zsh        oh-my-zsh and its plugins, make zsh the login shell
   secrets    interactive wizard for API tokens (see secrets.manifest)
   link       symlink the config into \$HOME with stow
